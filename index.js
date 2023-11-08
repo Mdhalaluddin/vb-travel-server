@@ -31,6 +31,19 @@ async function run() {
     const languageCollection = client.db('programmingLanguage').collection('language')
 
 
+    app.get('/language', async(req, res)=>{
+        const cursor = languageCollection.find()
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
+    app.post('/language', async(req, res)=>{
+        const newCourses = req.body;
+        const result = await languageCollection.insertOne(newCourses)
+        console.log(result);
+        res.send(result);
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
