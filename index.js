@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -29,6 +29,7 @@ async function run() {
     await client.connect();
 
     const languageCollection = client.db('programmingLanguage').collection('language')
+    const wishlistCollection = client.db('programmingLanguage').collection('wishlist')
 
 
     app.get('/language', async(req, res)=>{
@@ -43,6 +44,28 @@ async function run() {
         console.log(result);
         res.send(result);
     })
+
+    app.put('/language/:id', async(req, res)=>{
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)}
+        const options = {upsert: true}
+        const updateCourses = req.body;
+        const cursor ={
+            $set: {
+                title: updateCourses.title,
+                select: updateCourses.select,
+                shortDescription: updateCourses.shortDescription,
+                longDescription: updateCourses.longDescription,
+                img: updateCourses.img
+            }
+        }
+        const result = await languageCollection.updateOne(filter,options, cursor);
+        res.send(result)
+    })
+
+    // Wishlist added
+
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
