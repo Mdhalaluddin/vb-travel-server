@@ -64,8 +64,30 @@ async function run() {
     })
 
     // Wishlist added
+    app.get('/wishlist', async(req, res)=>{
+        console.log(req.query.email);
+        let query = {};
+        if(req.query?.email){
+            query = {email : req.query.email}
+        }
+        const result = await wishlistCollection.find().toArray();
+        res.send(result)
+        })
 
-    
+    app.post('/wishlist', async(req, res)=>{
+        const wishlist = req.body;
+        console.log(wishlist);
+        const result= await wishlistCollection.insertOne(wishlist)
+        res.send(result);
+    })
+
+    app.delete('/wishlist/:id', async(req, res)=>{
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await wishlistCollection.deleteOne(query)
+        res.send(result)
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
