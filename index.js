@@ -32,12 +32,30 @@ async function run() {
         const wishlistCollection = client.db('programmingLanguage').collection('wishlist')
         const commentCollection = client.db('programmingLanguage').collection('comment')
 
-
+        // all data api and search related api
         app.get('/language', async (req, res) => {
-            const cursor = languageCollection.find()
+            const filter = req.query;
+            console.log(filter);
+            const query = {
+                category: { $regex: filter.search, $options: 'i' }
+            }
+            const cursor = languageCollection.find(query)
             const result = await cursor.toArray();
             res.send(result);
         })
+
+        // resent blog
+        // app.get('/resent/blog', async(req, res)=>{
+        //     const filter = req.query;
+        //     console.log(filter);
+        //     const query = {
+
+        //     }
+        //     const cursor = languageCollection.find();
+        //     const result = await cursor.toArray();
+        //     res.send(result)
+        // })
+
 
         app.post('/language', async (req, res) => {
             const newBlog = req.body;
@@ -46,15 +64,15 @@ async function run() {
             res.send(result);
         })
         // comment
-        app.get('/comment', async(req, res)=>{
+        app.get('/comment', async (req, res) => {
             const cursor = commentCollection.find()
             const result = await cursor.toArray()
             res.send(result)
         })
 
-        app.post('/comment', async(req,res)=>{
+        app.post('/comment', async (req, res) => {
             const userComment = req.body;
-            console.log('user commit',userComment);
+            console.log('user commit', userComment);
             const result = await commentCollection.insertOne(userComment)
             res.send(result)
         })
