@@ -1,5 +1,6 @@
 const express = require('express')
-const cors = require('cors')
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 require('dotenv').config()
@@ -7,7 +8,12 @@ const port = process.env.PORT || 5000;
 
 
 // middleware
-app.use(cors());
+app.use(cors({
+    origin:[
+        'http://localhost:5173'
+    ],
+    credentials: true,
+}));
 app.use(express.json());
 
 
@@ -32,6 +38,29 @@ async function run() {
         const wishlistCollection = client.db('programmingLanguage').collection('wishlist')
         const commentCollection = client.db('programmingLanguage').collection('comment')
 
+
+
+        // auth related api
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            console.log('user for token', user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1h'
+            })
+            
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none'
+            })
+            send({ success: true })
+        })
+        app.post('/logout', async(req, res)=>{
+            const user = req.body;
+            console.log('logging out', user);
+            res.clearCookie('token', {maxAge: 0}).send({success: true})
+        })
+
         // all data api and search related api
         app.get('/language', async (req, res) => {
             const filter = req.query;
@@ -45,16 +74,13 @@ async function run() {
         })
 
         // resent blog
-        // app.get('/resent/blog', async(req, res)=>{
-        //     const filter = req.query;
-        //     console.log(filter);
-        //     const query = {
-
-        //     }
-        //     const cursor = languageCollection.find();
-        //     const result = await cursor.toArray();
-        //     res.send(result)
-        // })
+        app.get('/language/create', async (req, res) => {
+            // const filter = req.query;
+            // console.log(filter);
+            const cursor = languageCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
 
 
         app.post('/language', async (req, res) => {
@@ -63,19 +89,7 @@ async function run() {
             console.log(result);
             res.send(result);
         })
-        // comment
-        app.get('/comment', async (req, res) => {
-            const cursor = commentCollection.find()
-            const result = await cursor.toArray()
-            res.send(result)
-        })
 
-        app.post('/comment', async (req, res) => {
-            const userComment = req.body;
-            console.log('user commit', userComment);
-            const result = await commentCollection.insertOne(userComment)
-            res.send(result)
-        })
 
 
         app.get('/language/:id', async (req, res) => {
@@ -117,6 +131,7 @@ async function run() {
 
         app.post('/wishlist', async (req, res) => {
             const wishlist = req.body;
+            delete wishlist._id;
             console.log(wishlist);
             const result = await wishlistCollection.insertOne(wishlist)
             res.send(result);
@@ -128,6 +143,19 @@ async function run() {
             const result = await wishlistCollection.deleteOne(query)
             res.send(result)
         });
+        // comment
+        app.get('/comment', async (req, res) => {
+            const cursor = commentCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        app.post('/comment', async (req, res) => {
+            const userComment = req.body;
+            console.log('user commit', userComment);
+            const result = await commentCollection.insertOne(userComment)
+            res.send(result)
+        })
 
 
         // Send a ping to confirm a successful connection
