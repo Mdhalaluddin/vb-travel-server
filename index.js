@@ -11,7 +11,8 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors({
     origin: [
-        'http://localhost:5173'
+        'http://localhost:5173',
+        'https://vb-travel.web.app'
     ],
     credentials: true,
 }));
@@ -51,7 +52,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const languageCollection = client.db('programmingLanguage').collection('language')
         const wishlistCollection = client.db('programmingLanguage').collection('wishlist')
@@ -86,8 +87,9 @@ async function run() {
             console.log('cok cok cokise', req.cookies);
             console.log(filter);
             const query = {
-                category: { $regex: filter.search, $options: 'i' }
+                category: { '$regex': filter.category, '$options': 'i' }
             }
+            console.log(filter.search);
             const cursor = languageCollection.find(query)
             const result = await cursor.toArray();
             res.send(result);
@@ -191,8 +193,9 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
